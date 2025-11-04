@@ -43,24 +43,39 @@
 1. В Xcode: **File → Add Package Dependencies...**
 2. Вставьте URL репозитория:
 ```
-https://github.com/your-username/LoxxCore.git
+https://github.com/ilisun/loxx-router-ios
 ```
-3. Выберите версию и добавьте в проект
+3. Выберите версию `1.0.0` и добавьте в проект
+4. В Target → General → Frameworks, Libraries добавьте **LoxxRouter**
 
 Или добавьте в `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-username/LoxxCore.git", from: "1.0.0")
+    .package(url: "https://github.com/ilisun/loxx-router-ios", from: "1.0.0")
+],
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: ["LoxxRouter"]
+    )
 ]
 ```
 
 ### Подготовка данных
 
-1. **Скачайте оффлайн-пакет** для нужного региона (`.routingdb` файл)
-2. **Добавьте в проект:**
-   - Drag & drop файл в Xcode
-   - Убедитесь, что он добавлен в **Target → Build Phases → Copy Bundle Resources**
+Для работы нужен файл базы данных `.routingdb` с картографическими данными региона.
+
+**Вариант 1: Встроить в приложение**
+
+1. Скачайте оффлайн-пакет для нужного региона (`.routingdb` файл)
+2. Drag & drop файл в Xcode проект
+3. Убедитесь, что галочка напротив вашего Target стоит
+4. Проверьте: **Target → Build Phases → Copy Bundle Resources** должен содержать файл
+
+**Вариант 2: Загрузить при первом запуске**
+
+Храните файлы на своём сервере и скачивайте в Documents directory (см. пример ниже)
 
 ## 🚀 Быстрый старт
 
@@ -71,15 +86,19 @@ import LoxxRouter
 import CoreLocation
 
 // Из Bundle (встроенный файл)
+// Если файл называется "routing.routingdb" в корне проекта:
+let router = try LoxxRouter.bundled()
+
+// Если файл в подпапке "arkhangelsk/routing.routingdb":
 let router = try LoxxRouter.bundled(resourceName: "arkhangelsk/routing")
 
 // Из Documents directory (загруженный файл)
 let router = try LoxxRouter.documents(filename: "moscow.routingdb")
 
-// С кастомными настройками
+// С кастомным путём и настройками
 var options = LoxxRouterOptions()
 options.tileCacheCapacity = 256 // больше кэш для быстрых повторных запросов
-let router = try LoxxRouter(databasePath: path, options: options)
+let router = try LoxxRouter(databasePath: "/path/to/database.routingdb", options: options)
 ```
 
 ### 2. Расчёт маршрута (iOS 15+, async/await)
@@ -512,9 +531,9 @@ MIT License. См. [LICENSE](../../LICENSE) для деталей.
 
 ## 🤝 Поддержка
 
-- 📧 Email: support@loxxrouter.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/LoxxCore/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/your-username/LoxxCore/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/ilisun/loxx-router-ios/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/ilisun/loxx-router-ios/discussions)
+- 📚 C++ Core: [loxx-core](https://github.com/ilisun/loxx-core)
 
 ## 🎯 Roadmap
 
