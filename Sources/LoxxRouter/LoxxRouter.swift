@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import LoxxRouterCore  // C++ bridge
 
 /// Routing profile determining which roads/paths are accessible
 public enum LoxxRoutingProfile {
@@ -41,6 +42,36 @@ public struct LoxxRoute {
     public var averageSpeed: Double {
         guard duration > 0 else { return 0 }
         return (distance / 1000) / (duration / 3600)
+    }
+    
+    /// Number of waypoints in route
+    public var waypointCount: Int {
+        coordinates.count
+    }
+    
+    /// Bounding box of the route
+    ///
+    /// - Returns: Tuple with southwest and northeast corners, or nil if route is empty
+    public var boundingBox: (southwest: CLLocationCoordinate2D, northeast: CLLocationCoordinate2D)? {
+        guard !coordinates.isEmpty else { return nil }
+        
+        let lats = coordinates.map { $0.latitude }
+        let lons = coordinates.map { $0.longitude }
+        
+        guard let minLat = lats.min(), let maxLat = lats.max(),
+              let minLon = lons.min(), let maxLon = lons.max() else {
+            return nil
+        }
+        
+        return (
+            southwest: CLLocationCoordinate2D(latitude: minLat, longitude: minLon),
+            northeast: CLLocationCoordinate2D(latitude: maxLat, longitude: maxLon)
+        )
+    }
+    
+    /// Check if route is empty (has no waypoints)
+    public var isEmpty: Bool {
+        coordinates.isEmpty
     }
 }
 
@@ -131,6 +162,52 @@ public final class LoxxRouter {
         }
     }
     
+    /// Initialize router with bundled database resource
+    ///
+    /// Searches for `.routingdb` file in main bundle
+    ///
+    /// - Parameters:
+    ///   - resourceName: Name of the resource without extension (e.g. "routing" or "arkhangelsk/routing")
+    ///   - bundle: Bundle to search in (default: main bundle)
+    ///   - options: Router configuration options
+    /// - Throws: `LoxxRouterError.databaseNotFound` if resource not found
+    ///
+    /// ## Example:
+    /// ```swift
+    /// // With file "routing.routingdb" in main bundle
+    /// let router = try LoxxRouter.bundled(resourceName: "routing")
+    ///
+    /// // With subdirectory structure
+    /// let router = try LoxxRouter.bundled(resourceName: "cities/moscow/routing")
+    /// ```
+    public static func bundled(resourceName: String, bundle: Bundle = .main, options: LoxxRouterOptions = LoxxRouterOptions()) throws -> LoxxRouter {
+        guard let dbURL = bundle.url(forResource: resourceName, withExtension: "routingdb") else {
+            throw LoxxRouterError.databaseNotFound
+        }
+        return try LoxxRouter(databasePath: dbURL.path, options: options)
+    }
+    
+    /// Initialize router with database in documents directory
+    ///
+    /// - Parameters:
+    ///   - filename: Database filename (default: "routing.routingdb")
+    ///   - options: Router configuration options
+    /// - Throws: `LoxxRouterError.databaseNotFound` if file not found
+    ///
+    /// ## Example:
+    /// ```swift
+    /// // Use default filename
+    /// let router = try LoxxRouter.documents()
+    ///
+    /// // Custom filename
+    /// let router = try LoxxRouter.documents(filename: "moscow.routingdb")
+    /// ```
+    public static func documents(filename: String = "routing.routingdb", options: LoxxRouterOptions = LoxxRouterOptions()) throws -> LoxxRouter {
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let dbURL = documentsURL.appendingPathComponent(filename)
+        return try LoxxRouter(databasePath: dbURL.path, options: options)
+    }
+    
     /// Calculate route between two coordinates (synchronous)
     ///
     /// - Parameters:
@@ -170,7 +247,16 @@ public final class LoxxRouter {
                 return
             }
             
-            let result = Result { try self.calculateRoute(from: start, to: end, profile: profile) }
+            let result: Result<LoxxRoute, LoxxRouterError>
+            do {
+                let route = try self.calculateRoute(from: start, to: end, profile: profile)
+                result = .success(route)
+            } catch let error as LoxxRouterError {
+                result = .failure(error)
+            } catch {
+                result = .failure(.internalError(error.localizedDescription))
+            }
+            
             DispatchQueue.main.async {
                 completion(result)
             }

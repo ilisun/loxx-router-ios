@@ -1,6 +1,6 @@
 import Foundation
 import CoreLocation
-import loxx_core  // Bridge is now part of XCFramework
+import LoxxRouterCore  // Bridge is now part of XCFramework (must match binary target name)
 
 /// Internal Swift extension to bridge Objective-C++ to pure Swift API
 extension LoxxRouterBridge {
@@ -11,16 +11,19 @@ extension LoxxRouterBridge {
         to end: CLLocationCoordinate2D,
         profile: LoxxRoutingProfile
     ) throws -> LoxxRoute {
-        var error: NSError?
         let profileInt: Int = (profile == .car) ? 0 : 1
         
-        guard let result = self.route(from: start, to: end, profile: profileInt, error: &error) else {
-            // Convert NSError to LoxxRouterError
-            if let nsError = error {
-                throw convertError(nsError)
-            }
-            throw LoxxRouterError.internalError("Unknown error")
+        // Swift automatically converts ObjC error: parameter to throws
+        do {
+            let result = try self.route(from: start, to: end, profile: profileInt)
+            return try parseRouteResult(result)
+        } catch let nsError as NSError {
+            throw convertError(nsError)
         }
+    }
+    
+    /// Parse route dictionary result
+    private func parseRouteResult(_ result: [AnyHashable: Any]) throws -> LoxxRoute {
         
         // Extract coordinates
         guard let coordValues = result["coordinates"] as? [NSValue] else {
@@ -48,19 +51,26 @@ extension LoxxRouterBridge {
     
     /// Convert NSError from bridge to Swift LoxxRouterError
     private func convertError(_ nsError: NSError) -> LoxxRouterError {
-        let message = nsError.localizedDescription
+        // Check error domain
+        guard nsError.domain == LoxxRouterErrorDomain as String else {
+            return .internalError(nsError.localizedDescription)
+        }
         
-        switch nsError.code {
-        case 1: // LoxxRouterErrorCodeDatabaseNotFound
+        // Convert using typed enum from ObjC
+        let errorCode = LoxxRouterErrorCode(rawValue: nsError.code)
+        switch errorCode {
+        case .databaseNotFound:
             return .databaseNotFound
-        case 2: // LoxxRouterErrorCodeNoRoute
+        case .noRoute:
             return .noRoute
-        case 3: // LoxxRouterErrorCodeNoTile
+        case .noTile:
             return .noTileData
-        case 4: // LoxxRouterErrorCodeDataCorrupted
+        case .dataCorrupted:
             return .dataCorrupted
-        default: // LoxxRouterErrorCodeInternalError
-            return .internalError(message)
+        case .internal, .none:
+            return .internalError(nsError.localizedDescription)
+        @unknown default:
+            return .internalError(nsError.localizedDescription)
         }
     }
 }
