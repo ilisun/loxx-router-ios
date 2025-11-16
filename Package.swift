@@ -15,19 +15,27 @@ let package = Package(
     ],
     targets: [
         // ═══════════════════════════════════════════════════
-        // LoxxRouter (Swift API + Obj-C++ Bridge)
+        // Public Swift API
         // ═══════════════════════════════════════════════════
         .target(
             name: "LoxxRouter",
-            dependencies: ["LoxxRouterCore"],
-            path: "Sources",
-            sources: [
-                "LoxxRouter/",
-                "LoxxRouterBridge/LoxxRouterBridge.mm"
-            ],
-            publicHeadersPath: "LoxxRouterBridge/include",
+            dependencies: ["LoxxRouterBridge"],
+            path: "Sources/LoxxRouter",
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency")
+            ]
+        ),
+        
+        // ═══════════════════════════════════════════════════
+        // Private Objective-C++ Bridge
+        // ═══════════════════════════════════════════════════
+        .target(
+            name: "LoxxRouterBridge",
+            dependencies: ["LoxxRouterCore"],
+            path: "Sources/LoxxRouterBridge",
+            publicHeadersPath: "include",
+            cxxSettings: [
+                .unsafeFlags(["-fmodules", "-fcxx-modules"])
             ]
         ),
         
