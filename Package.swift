@@ -33,7 +33,13 @@ let package = Package(
             name: "LoxxRouterBridge",
             dependencies: ["LoxxRouterCore"],
             path: "Sources/LoxxRouterBridge",
-            publicHeadersPath: "include"
+            publicHeadersPath: "include",
+            cxxSettings: [
+                .headerSearchPath(".")
+            ],
+            linkerSettings: [
+                .linkedFramework("loxx-core")
+            ]
         ),
         
         // ═══════════════════════════════════════════════════
