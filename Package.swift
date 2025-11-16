@@ -41,8 +41,8 @@ let package = Package(
         // ═══════════════════════════════════════════════════
         .binaryTarget(
             name: "LoxxRouterCore",
-            url: "https://github.com/ilisun/loxx-core/releases/download/v1.0.1/loxx-core.xcframework.zip",
-            checksum: "f48a716ab9435b33861294c403a2c342f172cb0ccd3b007bb4bbc13b12e12a3e"
+            url: "https://github.com/ilisun/loxx-core/releases/download/v1.0.2/loxx-core.xcframework.zip",
+            checksum: "ee837163f0f710d78f849716ecf2c3696a3a1166f4b70b55c070095bb7e50376"
         ),
         
         // ═══════════════════════════════════════════════════
