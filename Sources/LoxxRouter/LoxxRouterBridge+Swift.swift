@@ -1,6 +1,6 @@
 import Foundation
 import CoreLocation
-import LoxxRouterBridge
+import loxx_core  // Bridge is now part of XCFramework
 
 /// Internal Swift extension to bridge Objective-C++ to pure Swift API
 extension LoxxRouterBridge {
