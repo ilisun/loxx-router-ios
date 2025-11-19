@@ -8,8 +8,8 @@
 
 1. Откройте ваш проект в Xcode
 2. **File → Add Package Dependencies...**
-3. Введите URL: `https://github.com/your-username/LoxxCore.git`
-4. Выберите версию (например, `1.0.0`)
+3. Введите URL: `https://github.com/ilisun/loxx-router-ios`
+4. Выберите версию (например, `3.0.0`)
 5. Нажмите **Add Package**
 
 ## 📦 Шаг 2: Добавление оффлайн-данных
@@ -62,11 +62,11 @@ import CoreLocation
 
 class ViewController: UIViewController {
     private lazy var router: LoxxRouter? = {
-        try? LoxxRouter.bundled(resourceName: "moscow/routing")
+        try? LoxxRouter.bundled(resourceName: "routing")
     }()
     
     func calculateRoute() {
-        let start = CLLocationCoordinate2D(latitude: 55.7558, longitude: 37.6173)
+        let start = CLLocationCoordinate2D(latitude: 55.7558, longitude: 37.6173)  // Москва
         let end = CLLocationCoordinate2D(latitude: 55.7522, longitude: 37.6156)
         
         router?.calculateRoute(from: start, to: end, profile: .car) { [weak self] result in
@@ -74,14 +74,22 @@ class ViewController: UIViewController {
             case .success(let route):
                 self?.showRoute(route)
             case .failure(let error):
-                self?.showError(error.localizedDescription)
+                self?.showError(error)
             }
         }
     }
     
     private func showRoute(_ route: LoxxRoute) {
         print("Маршрут: \(route.distanceFormatted) за \(route.durationFormatted)")
+        print("Точек маршрута: \(route.waypointCount)")
         // Отобразите на карте...
+    }
+    
+    private func showError(_ error: LoxxRouterError) {
+        let message = error.localizedDescription ?? "Неизвестная ошибка"
+        let alert = UIAlertController(title: "Ошибка маршрута", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 ```
@@ -133,11 +141,10 @@ class RouteViewModel: ObservableObject {
 
 ### Добавьте MapLibre
 
-```swift
-dependencies: [
-    .package(url: "https://github.com/maplibre/maplibre-gl-native-distribution", from: "6.0.0")
-]
-```
+В Xcode:
+1. **File → Add Package Dependencies...**
+2. Введите URL: `https://github.com/maplibre/maplibre-gl-native-distribution`
+3. Выберите версию `6.0.0` или новее
 
 ### Отображение маршрута
 
@@ -145,15 +152,26 @@ dependencies: [
 import MapLibre
 import LoxxRouter
 
-extension ViewController {
+class MapViewController: UIViewController {
+    var mapView: MLNMapView!
+    
     private func displayRoute(_ route: LoxxRoute) {
         guard let style = mapView.style else { return }
         
-        // Добавить маршрут на карту
+        // Вариант 1: Простое добавление маршрута
         route.addToMapStyle(style, color: .systemBlue, width: 5)
         
-        // Приблизить камеру
-        mapView.showRoute(route)
+        // Вариант 2: Маршрут с белой обводкой
+        route.addToMapStyleWithCasing(
+            style,
+            lineColor: .systemBlue,
+            lineWidth: 5,
+            casingColor: .white,
+            casingWidth: 7
+        )
+        
+        // Приблизить камеру к маршруту
+        mapView.showRoute(route, edgePadding: UIEdgeInsets(top: 80, left: 50, bottom: 80, right: 50))
     }
 }
 ```
@@ -256,8 +274,8 @@ class LocationRouterManager: NSObject, CLLocationManagerDelegate {
 ## 🎓 Полезные ресурсы
 
 - [Полная документация API](README.md)
-- [Пример SwiftUI приложения](Examples/README.md)
-- [Unit тесты](Tests/LoxxRouterTests/)
+- [Пример iOS приложения](https://github.com/ilisun/loxx-app-ios)
+- [C++ роутинг-движок и конвертер](https://github.com/ilisun/loxx-core)
 
 ## 💡 Советы
 
@@ -284,7 +302,7 @@ class LocationRouterManager: NSObject, CLLocationManagerDelegate {
 ## 📞 Поддержка
 
 Если возникли вопросы:
-- 📧 Email: support@loxxrouter.com
-- 🐛 GitHub Issues
-- 💬 GitHub Discussions
+- 🐛 [GitHub Issues](https://github.com/ilisun/loxx-router-ios/issues)
+- 📖 [Документация](https://github.com/ilisun/loxx-router-ios)
+- 🔗 [Связанные проекты](https://github.com/ilisun)
 
