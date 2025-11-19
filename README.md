@@ -28,6 +28,7 @@ dependencies: [
 ```
 
 Or in Xcode:
+
 1. File → Add Package Dependencies
 2. Enter URL: `https://github.com/ilisun/loxx-router-ios`
 3. Select version: 3.0.0 or later
@@ -109,6 +110,7 @@ do {
 Main router class for calculating routes.
 
 **Initializers:**
+
 ```swift
 // Standard initializer
 init(databasePath: String, options: LoxxRouterOptions = LoxxRouterOptions()) throws
@@ -119,6 +121,7 @@ static func documents(filename: String = "routing.routingdb", options: LoxxRoute
 ```
 
 **Methods:**
+
 ```swift
 // Synchronous
 func calculateRoute(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, profile: LoxxRoutingProfile = .car) throws -> LoxxRoute
@@ -135,6 +138,7 @@ func calculateRoute(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, pr
 Calculated route with coordinates, distance, and duration.
 
 **Properties:**
+
 ```swift
 let coordinates: [CLLocationCoordinate2D]   // Route polyline
 let distance: CLLocationDistance            // Distance in meters
@@ -277,7 +281,7 @@ do {
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────────────────────────────┐
 │   Swift Application Code            │
 └─────────────────┬───────────────────┘
