@@ -211,7 +211,7 @@ public extension MLNMapView {
             bounds.ne.longitude = max(bounds.ne.longitude, coord.longitude)
         }
         
-        let camera = camera(for: bounds, insets: edgePadding)
+        let camera = cameraThatFitsCoordinateBounds(bounds, edgePadding: edgePadding)
         setCamera(camera, animated: animated)
     }
 }
