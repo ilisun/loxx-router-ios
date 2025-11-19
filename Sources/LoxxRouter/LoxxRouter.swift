@@ -298,65 +298,6 @@ extension LoxxRouter {
     }
 }
 
-// MARK: - Convenience Initializers
-
-public extension LoxxRouter {
-    /// Initialize router with database from app bundle
-    ///
-    /// - Parameters:
-    ///   - resourceName: Database filename without .routingdb extension
-    ///   - bundle: Bundle containing the database (default: main bundle)
-    ///   - options: Router configuration options
-    /// - Returns: Configured router instance
-    /// - Throws: `LoxxRouterError.databaseNotFound` if file not in bundle
-    ///
-    /// ## Example
-    /// ```swift
-    /// // Database in bundle: Resources/arkhangelsk/routing.routingdb
-    /// let router = try LoxxRouter.bundled(resourceName: "arkhangelsk/routing")
-    /// ```
-    static func bundled(
-        resourceName: String = "routing",
-        bundle: Bundle = .main,
-        options: LoxxRouterOptions = LoxxRouterOptions()
-    ) throws -> LoxxRouter {
-        // Handle paths like "arkhangelsk/routing"
-        let components = resourceName.split(separator: "/").map(String.init)
-        let name = components.last ?? resourceName
-        let subdirectory = components.count > 1 ? components.dropLast().joined(separator: "/") : nil
-        
-        guard let path = bundle.path(forResource: name, ofType: "routingdb", inDirectory: subdirectory) else {
-            throw LoxxRouterError.databaseNotFound
-        }
-        
-        return try LoxxRouter(databasePath: path, options: options)
-    }
-    
-    /// Initialize router with database in Documents directory
-    ///
-    /// - Parameters:
-    ///   - filename: Database filename (with or without .routingdb extension)
-    ///   - options: Router configuration options
-    /// - Returns: Configured router instance
-    /// - Throws: `LoxxRouterError.databaseNotFound` if file not found
-    ///
-    /// ## Example
-    /// ```swift
-    /// // Use downloaded database from Documents
-    /// let router = try LoxxRouter.documents(filename: "moscow.routingdb")
-    /// ```
-    static func documents(
-        filename: String,
-        options: LoxxRouterOptions = LoxxRouterOptions()
-    ) throws -> LoxxRouter {
-        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dbFilename = filename.hasSuffix(".routingdb") ? filename : "\(filename).routingdb"
-        let databaseURL = documentsURL.appendingPathComponent(dbFilename)
-        
-        return try LoxxRouter(databasePath: databaseURL.path, options: options)
-    }
-}
-
 // MARK: - CLLocation Integration
 
 public extension LoxxRouter {

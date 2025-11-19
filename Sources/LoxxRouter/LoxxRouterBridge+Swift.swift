@@ -56,20 +56,19 @@ extension LoxxRouterBridge {
             return .internalError(nsError.localizedDescription)
         }
         
-        // Convert using typed enum from ObjC
-        let errorCode = LoxxRouterErrorCode(rawValue: nsError.code)
-        switch errorCode {
-        case .databaseNotFound:
+        // Convert error code (matches LoxxRouterErrorCode from ObjC header)
+        switch nsError.code {
+        case 1: // LoxxRouterErrorCodeDatabaseNotFound
             return .databaseNotFound
-        case .noRoute:
+        case 2: // LoxxRouterErrorCodeNoRoute
             return .noRoute
-        case .noTile:
+        case 3: // LoxxRouterErrorCodeNoTile
             return .noTileData
-        case .dataCorrupted:
+        case 4: // LoxxRouterErrorCodeDataCorrupted
             return .dataCorrupted
-        case .internal, .none:
+        case 5: // LoxxRouterErrorCodeInternal
             return .internalError(nsError.localizedDescription)
-        @unknown default:
+        default:
             return .internalError(nsError.localizedDescription)
         }
     }
