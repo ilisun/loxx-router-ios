@@ -210,20 +210,40 @@ if let bbox = route.boundingBox {
 ### With MapLibre
 
 ```swift
-import Mapbox // or MapLibre
+import MapLibre
 
 let route = try await router.calculateRoute(from: start, to: end, profile: .car)
 
-let source = MGLShapeSource(
+// Option A: Simple polyline
+let source = MLNShapeSource(
     identifier: "route",
-    shape: MGLPolyline(coordinates: route.coordinates, count: UInt(route.waypointCount))
+    shape: MLNPolyline(coordinates: route.coordinates, count: UInt(route.waypointCount)),
+    options: nil
 )
 mapView.style?.addSource(source)
 
-let layer = MGLLineStyleLayer(identifier: "route-layer", source: source)
-layer.lineColor = NSExpression(forConstantValue: UIColor.blue)
+let layer = MLNLineStyleLayer(identifier: "route-layer", source: source)
+layer.lineColor = NSExpression(forConstantValue: UIColor.systemBlue)
 layer.lineWidth = NSExpression(forConstantValue: 5)
+layer.lineCap = NSExpression(forConstantValue: "round")
+layer.lineJoin = NSExpression(forConstantValue: "round")
 mapView.style?.addLayer(layer)
+
+// Option B: Use convenience extension (if you imported MapLibreIntegration)
+guard let style = mapView.style else { return }
+route.addToMapStyle(style, color: .systemBlue, width: 5)
+
+// Option C: Route with casing (outline)
+route.addToMapStyleWithCasing(
+    style,
+    lineColor: .systemBlue,
+    lineWidth: 5,
+    casingColor: .white,
+    casingWidth: 7
+)
+
+// Fit camera to route
+mapView.showRoute(route, edgePadding: UIEdgeInsets(top: 50, left: 50, bottom: 50, right: 50))
 ```
 
 ## ⚙️ Advanced Usage
